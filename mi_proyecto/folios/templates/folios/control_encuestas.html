@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Control de Encuestas</h2>
+    
+    <!-- Filtros de búsqueda -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="area-filter" class="form-label">Filtrar por Área:</label>
+            <select id="area-filter" class="form-select">
+                <option value="">Todas las Áreas</option>
+                {% for area in unique_areas %}
+                    <option value="{{ area }}">{{ area }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="estado-filter" class="form-label">Filtrar por Estado:</label>
+            <select id="estado-filter" class="form-select">
+                <option value="">Todos</option>
+                <option value="primer_no_realizada">Primer Contacto: No Realizada</option>
+                <option value="envio_no_realizada">Envío: No Realizada</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Tabla de folios -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Folio</th>
+                    <th>Empresa</th>
+                    <th>Área</th>
+                    <th>Asesor (Primer Contacto)</th>
+                    <th>Estado (Primer Contacto)</th>
+                    <th>Asesor (Envío)</th>
+                    <th>Estado (Envío)</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for folio in folios %}
+                <tr data-area="{{ folio.area }}"
+                    data-primer-status="{{ folio.status_primer_contacto }}"
+                    data-envio-status="{{ folio.status_envio }}">
+                    <td>{{ folio.folio }}</td>
+                    <td>{{ folio.empresa }}</td>
+                    <td>{{ folio.area }}</td>
+                    
+                    <!-- Asesor para Primer Contacto (si se quiere asignar desde aquí, se asume que 'asesores' se pasa en contexto) -->
+                    <td>
+                        <select class="form-select asignar-asesor" data-folio="{{ folio.id }}" data-tipo="primer_contacto">
+                            <option value="">Sin asignar</option>
+                            {% for asesor in asesores %}
+                                <option value="{{ asesor.id }}" {% if folio.asesor_primer_contacto and folio.asesor_primer_contacto.id == asesor.id %}selected{% endif %}>
+                                    {{ asesor.username }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    
+                    <!-- Estado Primer Contacto -->
+                    <td>{{ folio.get_status_primer_contacto_display }}</td>
+                    
+                    <!-- Asesor para Envío -->
+                    <td>
+                        <select class="form-select asignar-asesor" data-folio="{{ folio.id }}" data-tipo="envio">
+                            <option value="">Sin asignar</option>
+                            {% for asesor in asesores %}
+                                <option value="{{ asesor.id }}" {% if folio.asesor_envio and folio.asesor_envio.id == asesor.id %}selected{% endif %}>
+                                    {{ asesor.username }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    
+                    <!-- Estado Envío -->
+                    <td>{{ folio.get_status_envio_display }}</td>
+                    
+                    <!-- Botón Ver Folio -->
+                    <td>
+                        <a href="{% url 'ver_folio_encuesta' folio.id %}" class="btn btn-primary btn-sm">Ver Folio</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">No se encontraron folios.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Script para actualizar el Asesor en tiempo real -->
+<script>
+    document.querySelectorAll(".asignar-asesor").forEach(select => {
+        select.addEventListener("change", function() {
+            let folioId = this.getAttribute("data-folio");
+            let tipo = this.getAttribute("data-tipo"); // "primer_contacto" o "envio"
+            let asesorId = this.value;
+
+            fetch("{% url 'asignar_asesor' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    folio_id: folioId,
+                    tipo: tipo,
+                    asesor_id: asesorId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Asesor asignado correctamente");
+                } else {
+                    alert("Error al asignar asesor");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
+
+    // Filtrado por Área
+    document.getElementById("area-filter").addEventListener("change", function() {
+        let selectedArea = this.value;
+        let rows = document.querySelectorAll("tbody tr");
+        rows.forEach(function(row) {
+            let area = row.getAttribute("data-area");
+            row.style.display = (selectedArea === "" || area === selectedArea) ? "" : "none";
+        });
+    });
+
+    // Filtrado por Estado (para primer contacto o envío)
+    document.getElementById("estado-filter").addEventListener("change", function() {
+        let selectedValue = this.value;
+        let rows = document.querySelectorAll("tbody tr");
+        rows.forEach(function(row) {
+            let primerStatus = row.getAttribute("data-primer-status");
+            let envioStatus = row.getAttribute("data-envio-status");
+
+            if (selectedValue === "") {
+                row.style.display = "";
+            } else if (selectedValue === "primer_no_realizada") {
+                row.style.display = (primerStatus === "NO REALIZADA") ? "" : "none";
+            } else if (selectedValue === "envio_no_realizada") {
+                row.style.display = (envioStatus === "NO REALIZADA") ? "" : "none";
+            }
+        });
+    });
+</script>
+{% endblock %}

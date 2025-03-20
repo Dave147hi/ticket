@@ -1,0 +1,169 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Folio: {{ folio.folio }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+      .card-header {
+          background-color: #1e325f;
+          color: white;
+      }
+      .readonly-field {
+          background-color: #e9ecef;
+          padding: .375rem .75rem;
+          border: 1px solid #ced4da;
+          border-radius: .25rem;
+      }
+  </style>
+</head>
+<body>
+  <div class="container my-4">
+    <div class="card">
+      <div class="card-header">
+        <h3>Editar Folio: {{ folio.folio }}</h3>
+      </div>
+      <div class="card-body">
+        <!-- Información de solo lectura -->
+        <div class="mb-3 row">
+          <label class="col-sm-3 col-form-label"><strong>Folio:</strong></label>
+          <div class="col-sm-9">
+            <div class="readonly-field">{{ folio.folio }}</div>
+          </div>
+        </div>
+        <div class="mb-3 row">
+          <label class="col-sm-3 col-form-label"><strong>Asesor:</strong></label>
+          <div class="col-sm-9">
+            <div class="readonly-field">{{ folio.asesor.username }}</div>
+          </div>
+        </div>
+        <div class="mb-3 row">
+          <label class="col-sm-3 col-form-label"><strong>Fecha de Apertura:</strong></label>
+          <div class="col-sm-9">
+            <div class="readonly-field">{{ folio.fecha_apertura|date:"Y-m-d H:i" }}</div>
+          </div>
+        </div>
+        
+        <!-- Formulario de edición para campos modificables -->
+        <form method="post">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="{{ folio_form.motivo.id_for_label }}" class="form-label">Motivo</label>
+                {{ folio_form.motivo }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.medio_recepcion.id_for_label }}" class="form-label">Medio de Recepción</label>
+                {{ folio_form.medio_recepcion }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.medio_contacto.id_for_label }}" class="form-label">Medio de Contacto</label>
+                {{ folio_form.medio_contacto }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.caso.id_for_label }}" class="form-label">Caso</label>
+                {{ folio_form.caso }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.area.id_for_label }}" class="form-label">Área</label>
+                {{ folio_form.area }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.responsable_area.id_for_label }}" class="form-label">Responsable de Área</label>
+                {{ folio_form.responsable_area }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.responsable_solucion.id_for_label }}" class="form-label">Responsable de Solución</label>
+                {{ folio_form.responsable_solucion }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.localidad.id_for_label }}" class="form-label">Localidad</label>
+                {{ folio_form.localidad }}
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="{{ folio_form.estatus.id_for_label }}" class="form-label">Estatus</label>
+                {{ folio_form.estatus }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.contacto.id_for_label }}" class="form-label">Contacto</label>
+                {{ folio_form.contacto }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.empresa.id_for_label }}" class="form-label">Empresa</label>
+                {{ folio_form.empresa }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.industria_sector.id_for_label }}" class="form-label">Industria/Sector</label>
+                {{ folio_form.industria_sector }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.direccion.id_for_label }}" class="form-label">Dirección</label>
+                {{ folio_form.direccion }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.estado.id_for_label }}" class="form-label">Estado</label>
+                {{ folio_form.estado }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.municipio.id_for_label }}" class="form-label">Municipio</label>
+                {{ folio_form.municipio }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.cp.id_for_label }}" class="form-label">Código Postal</label>
+                {{ folio_form.cp }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.telefono_local.id_for_label }}" class="form-label">Teléfono Local</label>
+                {{ folio_form.telefono_local }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.celular.id_for_label }}" class="form-label">Celular</label>
+                {{ folio_form.celular }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ folio_form.email.id_for_label }}" class="form-label">Email</label>
+                {{ folio_form.email }}
+              </div>
+            </div>
+          </div>
+          <!-- Campo opcional para nuevo comentario -->
+          <div class="mb-3">
+            <label for="nuevo_comentario" class="form-label">Nuevo Comentario (opcional):</label>
+            <textarea name="nuevo_comentario" id="nuevo_comentario" class="form-control" rows="3"></textarea>
+          </div>
+          <!-- Botones de acción -->
+          <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <div>
+              <a href="{% url 'dashboard' %}" class="btn btn-secondary me-2">Dashboard</a>
+              <a href="{% url 'ver_folio' folio.id %}" class="btn btn-info">Ver Folio</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Lista de comentarios -->
+    <div class="card mt-4">
+      <div class="card-header">Comentarios</div>
+      <div class="card-body">
+        {% if comentarios %}
+          {% for comentario in comentarios %}
+            <div class="mb-3 border-bottom pb-2">
+              <p class="mb-0"><strong>{{ comentario.usuario.username }}</strong> - {{ comentario.fecha|date:"F j, Y, g:i a" }}</p>
+              <p>{{ comentario.texto }}</p>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No hay comentarios.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

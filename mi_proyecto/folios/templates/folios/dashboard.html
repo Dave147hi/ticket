@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAC - Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Header */
+    header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+    }
+    header .agent-info {
+      font-size: 1.2rem;
+    }
+    /* Sidebar */
+    .sidebar {
+      background-color: #f4f4f4;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    /* Reducir tamaño de gráficas */
+    .chart-container {
+      max-width: 300px;
+      margin: auto;
+    }
+    /* Footer */
+    footer {
+      background-color: #ddd;
+      text-align: center;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="d-flex justify-content-between align-items-center">
+    <div class="agent-info">SAC - {{ request.user.username }}</div>
+    <div>
+      <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">Cerrar Sesión</a>
+    </div>
+  </header>
+
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar (Menú) -->
+      <aside class="col-md-3 sidebar">
+        <a href="{% url 'crear_folio' %}" class="btn btn-primary mb-3 w-100">Crear Folio</a>
+        <h5>Filtros</h5>
+        <form method="GET" action="{% url 'dashboard' %}">
+          <div class="mb-2">
+            <label for="area" class="form-label">Área:</label>
+            <select name="area" id="area" class="form-select">
+              <option value="">Todas</option>
+              {% for a in unique_areas %}
+                <option value="{{ a }}">{{ a }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label for="fecha" class="form-label">Fecha:</label>
+            <input type="date" name="fecha" id="fecha" class="form-control">
+          </div>
+          <div class="mb-2">
+            <label for="folio_numero" class="form-label">Buscar por Folio:</label>
+            <input type="text" name="folio_numero" id="folio_numero" class="form-control" placeholder="Número de folio">
+          </div>
+          <button type="submit" class="btn btn-secondary w-100">Filtrar</button>
+        </form>
+      </aside>
+
+      <!-- Contenido principal -->
+      <main class="col-md-9">
+        <div class="mt-4">
+          <!-- Gráficas en tamaño reducido -->
+          <div class="row">
+            <div class="col-md-6 text-center">
+              <h5>Folios por Área</h5>
+              <div class="chart-container">
+                <canvas id="chartArea"></canvas>
+              </div>
+            </div>
+            <div class="col-md-6 text-center">
+              <h5>Folios por Estatus</h5>
+              <div class="chart-container">
+                <canvas id="chartStatus"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabla de información de folios -->
+          <table class="table table-bordered mt-4">
+            <thead class="table-dark">
+              <tr>
+                <th>Folio</th>
+                <th>Área</th>
+                <th>Estatus</th>
+                <th>Fecha de Creación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for folio in folios %}
+              <tr>
+                <td>{{ folio.id }}</td>
+                <td>{{ folio.area }}</td>
+                <td>{{ folio.estatus }}</td>
+                <td>{{ folio.fecha_apertura|date:"Y-m-d H:i" }}</td>
+                <td>
+                  <a href="{% url 'ver_folio' folio.id %}" class="btn btn-info btn-sm">Ver</a>
+                  <a href="{% url 'editar_folio' folio.id %}" class="btn btn-warning btn-sm">Editar</a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="text-center">No se encontraron folios</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>creado por dave - {% now "Y" %}</p>
+  </footer>
+
+  <!-- Scripts para Chart.js -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Parsear datos JSON
+      var foliosByArea = JSON.parse('{{ folios_by_area_json|escapejs }}');
+      var foliosByStatus = JSON.parse('{{ folios_by_status_json|escapejs }}');
+
+      // Preparar datos para gráfico de áreas
+      var labelsArea = foliosByArea.map(item => item.area);
+      var dataArea = foliosByArea.map(item => item.count);
+
+      var ctxArea = document.getElementById('chartArea').getContext('2d');
+      new Chart(ctxArea, {
+        type: 'pie',
+        data: {
+          labels: labelsArea,
+          datasets: [{
+            data: dataArea,
+            backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4caf50', '#9c27b0']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true
+        }
+      });
+
+      // Preparar datos para gráfico de estatus
+      var labelsStatus = foliosByStatus.map(item => item.estatus);
+      var dataStatus = foliosByStatus.map(item => item.count);
+
+      var ctxStatus = document.getElementById('chartStatus').getContext('2d');
+      new Chart(ctxStatus, {
+        type: 'pie',
+        data: {
+          labels: labelsStatus,
+          datasets: [{
+            data: dataStatus,
+            backgroundColor: ['#4caf50', '#f44336', '#ff9800']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true
+        }
+      });
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

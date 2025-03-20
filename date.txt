@@ -1,0 +1,2 @@
+user:dave,pass:miproyecto2025
+DB:mi_proyect
