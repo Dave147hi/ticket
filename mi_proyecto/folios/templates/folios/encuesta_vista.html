@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="text-center mb-4">Folio: {{ folio.folio }}</h3>
+
+    <!-- Información del Folio -->
+    <table class="table table-bordered">
+        <tr>
+            <th>Fecha apertura</th>
+            <td>{{ folio.fecha_apertura|date:"d/m/Y" }}</td>
+            <th>Hora</th>
+            <td>{{ folio.hora_apertura }}</td>
+        </tr>
+        <tr>
+            <th>Área</th>
+            <td>{{ folio.area }}</td>
+            <th>Vendedor</th>
+            <td>{{ folio.responsable_solucion }}</td>
+        </tr>
+        <tr>
+            <th>Empresa</th>
+            <td>{{ folio.empresa }}</td>
+            <th>Contacto</th>
+            <td>{{ folio.contacto }}</td>
+        </tr>
+        <tr>
+            <th>Teléfono</th>
+            <td>{{ folio.telefono_local }}</td>
+            <th>Cel</th>
+            <td>{{ folio.celular }}</td>
+        </tr>
+        <tr>
+            <th>Correo</th>
+            <td>{{ folio.email }}</td>
+            <th>Fecha de cierre</th>
+            <td>{{ folio.fecha_cierre|default_if_none:"" }}</td>
+        </tr>
+        <tr>
+            <th>Caso</th>
+            <td colspan="3">{{ folio.caso }}</td>
+        </tr>
+    </table>
+
+    <!-- Primer Contacto -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">Primer Contacto</div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="tipo" value="primer_contacto">
+                <table class="table table-bordered text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>1er intento</th>
+                            <th>2do intento</th>
+                            <th>3er intento</th>
+                            <th>Status</th>
+                            <th>Intento</th>
+                            <th>Encuesta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ folio.intento_pc_1|default:"-" }}</td>
+                            <td>{{ folio.intento_pc_2|default:"-" }}</td>
+                            <td>{{ folio.intento_pc_3|default:"-" }}</td>
+                            <td>
+                                <select name="estado_primer_contacto" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    {% for value, label in estado_opciones %}
+                                        <option value="{{ value }}" {% if folio.estado_primer_contacto == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                {% if not folio.intento_pc_3 %}
+                                    <button type="submit" name="intento" value="1" class="btn btn-sm btn-warning">Capturar intento</button>
+                                {% else %}
+                                    <button class="btn btn-sm btn-secondary" disabled>Máximo alcanzado</button>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'primer_contacto' folio.id %}" class="btn btn-sm btn-primary">Encuesta 1</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+
+    <!-- Envío -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">Envío</div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="tipo" value="envio">
+                <table class="table table-bordered text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>1er intento</th>
+                            <th>2do intento</th>
+                            <th>3er intento</th>
+                            <th>Status</th>
+                            <th>Intento</th>
+                            <th>Encuesta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ folio.intento_envio_1|default:"-" }}</td>
+                            <td>{{ folio.intento_envio_2|default:"-" }}</td>
+                            <td>{{ folio.intento_envio_3|default:"-" }}</td>
+                            <td>
+                                <select name="estado_envio" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    {% for value, label in estado_opciones %}
+                                        <option value="{{ value }}" {% if folio.estado_envio == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                {% if not folio.intento_envio_3 %}
+                                    <button type="submit" name="intento" value="1" class="btn btn-sm btn-warning">Capturar intento</button>
+                                {% else %}
+                                    <button class="btn btn-sm btn-secondary" disabled>Máximo alcanzado</button>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'envio_encuesta' folio.id %}" class="btn btn-sm btn-success">Encuesta 2</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+
+    <!-- Comentario nuevo -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">Agregar Comentario</div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <textarea name="nuevo_comentario" rows="3" class="form-control" placeholder="Escribe tu comentario..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Comentarios existentes -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">Comentarios</div>
+        <div class="card-body">
+            {% for comentario in comentarios %}
+                <div class="border-bottom pb-2 mb-2">
+                    <p><strong>{{ comentario.usuario.username }}</strong> - {{ comentario.fecha|date:"d/m/Y, H:i" }}</p>
+                    <p>{{ comentario.texto }}</p>
+                </div>
+            {% empty %}
+                <p>No hay comentarios aún.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Botón de regresar -->
+    <div class="mt-4 text-end">
+        <a href="{% url 'control_encuestas' %}" class="btn btn-secondary">Regresar</a>
+    </div>
+</div>
+{% endblock %}

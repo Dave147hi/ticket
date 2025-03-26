@@ -1,5 +1,6 @@
 from django import forms
 from .models import Folio, Comentario
+from django.contrib.auth.models import User
 
 class FolioForm(forms.ModelForm):
     """
@@ -15,6 +16,7 @@ class FolioForm(forms.ModelForm):
             'celular', 'email', 'direccion', 'comentarios'
         ]
 
+
 class FolioEditForm(forms.ModelForm):
     """
     Formulario para editar un folio existente.
@@ -29,6 +31,7 @@ class FolioEditForm(forms.ModelForm):
             'municipio', 'cp', 'telefono_local', 'celular', 'email'
         ]
 
+
 class ComentarioForm(forms.ModelForm):
     """
     Formulario para agregar comentarios.
@@ -37,42 +40,36 @@ class ComentarioForm(forms.ModelForm):
         model = Comentario
         fields = ['texto']
 
+
 # ================================
-# NUEVOS FORMULARIOS PARA ENCUESTAS
+# FORMULARIOS PARA ENCUESTAS
 # ================================
 
 class PrimerContactoForm(forms.ModelForm):
     """
-    Formulario para actualizar el estado del primer contacto de una encuesta.
+    Formulario para actualizar el estado del primer contacto de una encuesta,
+    permitiendo asignar un asesor para el primer contacto.
     """
     class Meta:
         model = Folio
-        fields = ['status_primer_contacto']
-        widgets = {
-            'status_primer_contacto': forms.Select(choices=[
-                ('NO CONTESTAN', 'No Contestan'),
-                ('NO EXISTE', 'No Existe'),
-                ('NO SE ENCUENTRA', 'No Se Encuentra'),
-                ('NÚMERO EQUIVOCADO', 'Número Equivocado'),
-                ('REALIZADA', 'Realizada'),
-                ('NO REALIZADA', 'No Realizada'),
-            ])
-        }
+        fields = ['status_primer_contacto', 'estado_primer_contacto', 'fecha_primer_contacto']
+
+    def __init__(self, *args, **kwargs):
+        super(PrimerContactoForm, self).__init__(*args, **kwargs)
+        self.fields['status_primer_contacto'].queryset = User.objects.filter(is_active=True, is_staff=False)
+        self.fields['status_primer_contacto'].required = False
+
 
 class EnvioEncuestaForm(forms.ModelForm):
     """
-    Formulario para actualizar el estado de envío de una encuesta.
+    Formulario para actualizar el estado de envío de una encuesta,
+    permitiendo asignar un asesor para el envío.
     """
     class Meta:
         model = Folio
-        fields = ['status_envio']
-        widgets = {
-            'status_envio': forms.Select(choices=[
-                ('NO CONTESTAN', 'No Contestan'),
-                ('NO EXISTE', 'No Existe'),
-                ('NO SE ENCUENTRA', 'No Se Encuentra'),
-                ('NÚMERO EQUIVOCADO', 'Número Equivocado'),
-                ('REALIZADA', 'Realizada'),
-                ('NO REALIZADA', 'No Realizada'),
-            ])
-        }
+        fields = ['status_envio', 'estado_envio', 'fecha_envio']
+
+    def __init__(self, *args, **kwargs):
+        super(EnvioEncuestaForm, self).__init__(*args, **kwargs)
+        self.fields['status_envio'].queryset = User.objects.filter(is_active=True, is_staff=False)
+        self.fields['status_envio'].required = False
