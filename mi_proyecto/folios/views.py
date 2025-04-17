@@ -45,7 +45,7 @@ def crear_folio(request):
             folio_obj = form.save(commit=False)
             folio_obj.asesor = request.user
             folio_obj.save()
-            return redirect('dashboard')
+            return redirect('folio_creado', folio_id=folio_obj.id)  # ✅ redirección al modal
     else:
         form = FolioForm()
     return render(request, 'folios/crear_folio.html', {'form': form})
@@ -136,7 +136,6 @@ def encuesta_vista(request, folio_id):
         folio.save()
         return redirect('encuesta_vista', folio_id=folio.id)
 
-    # Para los selects
     estado_opciones = Folio._meta.get_field('estado_primer_contacto').choices
 
     return render(request, 'folios/encuesta_vista.html', {
@@ -203,3 +202,12 @@ def envio_encuesta(request, folio_id):
         form = EnvioEncuestaForm(instance=folio)
 
     return render(request, 'folios/envio_encuesta.html', {'folio': folio, 'form': form})
+
+# ================================
+# NUEVA VISTA PARA MODAL DE CREACIÓN
+# ================================
+
+@login_required
+def folio_creado(request, folio_id):
+    folio = get_object_or_404(Folio, id=folio_id)
+    return render(request, 'folios/folio_creado.html', {'folio': folio})

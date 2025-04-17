@@ -7,6 +7,7 @@ class Folio(models.Model):
     asesor = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Asesor", editable=False)
     fecha_apertura = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Apertura", editable=False)
     hora_apertura = models.TimeField(auto_now_add=True, verbose_name="Hora de Apertura", editable=False)
+
     estatus = models.CharField(
         max_length=20,
         choices=[('Abierta', 'Abierta'), ('Pendiente', 'Pendiente'), ('Cerrada', 'Cerrada')],
@@ -81,13 +82,21 @@ class Folio(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.folio:
-            ultimo_folio = Folio.objects.order_by('-id').first()
-            if ultimo_folio:
-                match = re.search(r'(\\d+)$', ultimo_folio.folio)
+            base = "SAC-"
+            ultimo = Folio.objects.filter(folio__startswith=base).order_by('-id').first()
+            if ultimo:
+                match = re.search(r'(\d+)$', ultimo.folio)
                 numero = int(match.group(0)) + 1 if match else 1
             else:
                 numero = 1
-            self.folio = f"SAC-{numero:04d}"
+
+            while True:
+                nuevo_folio = f"{base}{numero:04d}"
+                if not Folio.objects.filter(folio=nuevo_folio).exists():
+                    self.folio = nuevo_folio
+                    break
+                numero += 1
+
         super().save(*args, **kwargs)
 
     def __str__(self):

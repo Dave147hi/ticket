@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Folio generado con éxito</h5>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Folio número:</strong> {{ folio.folio }}</p>
+                    <p>¿Deseas enviar una solicitud por correo?</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Regresar al Dashboard</a>
+                    <a href="mailto:?subject=IGSA | Cotización Folio de apertura N° {{ folio.folio }}&body=Buen día%0D%0A%0D%0AEnvió solicitud de cotización con folio de apertura N° {{ folio.folio }}. Solicitamos nos retroalimente del estatus hasta su terminación.%0D%0A%0D%0ASolicitud de Cotización%0D%0A%0AFolio: {{ folio.folio }}%0D%0ARazón social: {{ folio.empresa }}%0D%0ADirección: {{ folio.direccion }}%0D%0ADelegación o municipio: {{ folio.municipio }}%0D%0AEstado: {{ folio.estado }}%0D%0AC.P: {{ folio.cp }}%0D%0AContacto: {{ folio.contacto }}%0D%0ATeléfono local: {{ folio.telefono_local }}%0D%0ACel.: {{ folio.celular }}%0D%0ACorreo: {{ folio.email }}%0D%0ARequerimiento: {{ folio.caso }}%0D%0A%0D%0ASaludos." 
+                       class="btn btn-primary">Enviar Correo con Outlook</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
